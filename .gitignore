@@ -1,0 +1,28 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+
+# --- Virtual Environments ---
+venv/
+env/
+.venv/
+yt-env/
+
+# --- Output Files ---
+transcripts.md
+
+# --- IDEs ---
+.vscode/
+.idea/
+.DS_Store
+
+# --- OS Specific ---
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
