@@ -61,20 +61,27 @@ def seconds_to_hhmmss(seconds):
     m, s = divmod(int(seconds), 60)
     return f"{m:02d}:{s:02d}"
 
-def generate_transcript_md(channel_url, output_file="transcripts.md"):
-    video_urls = get_video_urls_from_channel(channel_url)
-    with open(output_file, "w", encoding="utf-8") as f:
-        for video_url in tqdm(video_urls, desc="Processing videos"):
-            video_id = video_url.split("v=")[-1]
-            try:
-                transcript = YouTubeTranscriptApi.get_transcript(video_id)
-            except:
-                continue  # skip videos without captions
-            try:
-                video_title = YouTube(video_url).title
-            except:
-                video_title = video_url  # fallback
+def sanitize_filename(filename):
+    return re.sub(r'[\\/*?:"<>|]', "", filename)
 
+def generate_transcripts(channel_url, output_dir="transcripts"):
+    os.makedirs(output_dir, exist_ok=True)
+    video_urls = get_video_urls_from_channel(channel_url)
+    for idx, video_url in enumerate(tqdm(video_urls, desc="Processing videos"), start=1):
+        video_id = video_url.split("v=")[-1]
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        except:
+            continue  # skip videos without captions
+        try:
+            video_title = YouTube(video_url).title
+        except:
+            video_title = f"Video_{idx}"  # fallback
+
+        sanitized_title = sanitize_filename(video_title)
+        output_file = os.path.join(output_dir, f"{idx:03d}_{sanitized_title}.md")
+
+        with open(output_file, "w", encoding="utf-8") as f:
             f.write(f"# 📹 {video_title}\n")
             f.write(f"🔗 {video_url}\n\n")
 
@@ -84,10 +91,10 @@ def generate_transcript_md(channel_url, output_file="transcripts.md"):
                 f.write(f"- {ts} {text}\n")
             f.write("\n---\n\n")
 
-    print(f"\n✅ Done! Output saved to `{output_file}`")
+    print(f"\n✅ Done! Transcripts saved to `{output_dir}` directory")
 
 if __name__ == "__main__":
     channel_url = input("Enter YouTube channel URL or ID: ").strip()
     if not channel_url.startswith("http"):
         channel_url = f"https://www.youtube.com/channel/{channel_url}"
-    generate_transcript_md(channel_url)
+    generate_transcripts(channel_url)
